@@ -5,6 +5,7 @@ from collections import Counter
 from typing import List, Tuple, Dict, Any, Optional
 import json
 
+import os
 import pypdf
 from langdetect import detect
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -48,12 +49,30 @@ def _flatten_resp(content: Any) -> str:
     return str(content)
 
 def llm_make_text_plan(profile: dict, user_goal: str = "prepare for NLP") -> dict:
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
-    resp = llm.invoke([
-        SystemMessage(content=_PLAN_PROMPT),
-        HumanMessage(content=json.dumps({"profile": profile, "user_goal": user_goal}))
-    ])
-    txt = _flatten_resp(resp.content)
+    try:
+        import requests
+        import os
+        # Load API key directly from .env file
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.startswith('GOOGLE_API_KEY='):
+                    api_key = line.split('=', 1)[1].strip()
+                    break
+        
+        url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}'
+        prompt = f"{_PLAN_PROMPT}\n\n{json.dumps({'profile': profile, 'user_goal': user_goal})}"
+        payload = {'contents': [{'parts': [{'text': prompt}]}]}
+        
+        response = requests.post(url, json=payload, timeout=30)
+        if response.status_code == 200:
+            result = response.json()
+            txt = result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            raise Exception(f"API Error: {response.text}")
+    except Exception as e:
+        print(f"AI API Error: {e}")
+        txt = '{"ops": [{"op": "lowercase"}, {"op": "remove_punctuation"}], "notes": "Basic text cleaning (AI unavailable)"}'
     j = txt[txt.find("{"):txt.rfind("}")+1] if "{" in txt else "{}"
     try:
         plan = json.loads(j)

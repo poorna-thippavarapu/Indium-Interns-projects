@@ -3,6 +3,7 @@ import numpy as np
 import json
 from typing import Dict, Any, List, Tuple, Optional
 
+import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -37,12 +38,31 @@ def _flatten_resp(x: Any) -> str:
     return str(x)
 
 def llm_make_tabular_plan(profile: dict, user_goal: str="prepare ML") -> dict:
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
-    resp = llm.invoke([
-        SystemMessage(content=_PLAN_PROMPT),
-        HumanMessage(content=json.dumps({"user_goal":user_goal, "profile":profile}))
-    ])
-    txt = _flatten_resp(resp.content)
+    try:
+        import requests
+        import os
+        # Load API key directly from .env file to avoid caching issues
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.startswith('GOOGLE_API_KEY='):
+                    api_key = line.split('=', 1)[1].strip()
+                    break
+        
+        url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}'
+        prompt = f"{_PLAN_PROMPT}\n\n{json.dumps({'user_goal': user_goal, 'profile': profile})}"
+        payload = {'contents': [{'parts': [{'text': prompt}]}]}
+        
+        response = requests.post(url, json=payload, timeout=30)
+        if response.status_code == 200:
+            result = response.json()
+            txt = result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            raise Exception(f"API Error: {response.text}")
+    except Exception as e:
+        print(f"AI API Error: {e}")
+        # Fallback mock response for structured data
+        txt = '{"ops": [{"op": "drop_cols", "cols": []}, {"op": "impute", "col": "numeric_column", "strategy": "median"}], "notes": "Basic cleaning plan (AI unavailable)"}'
     j = txt[txt.find("{"):txt.rfind("}")+1] if "{" in txt else "{}"
     try:
         plan = json.loads(j)
