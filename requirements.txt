@@ -1,0 +1,32 @@
+# Web/API
+fastapi
+uvicorn[standard]
+python-multipart
+fastapi-cors
+python-dotenv
+
+# Core AI & LLM
+langchain
+langchain-core
+langchain-google-genai
+
+# Data handling
+numpy
+pandas
+
+# Computer vision
+opencv-python
+
+# Deep learning
+tensorflow
+
+# Text processing
+pypdf
+langdetect
+nltk
+
+# Web requests
+requests
+
+# Graph
+langgraph
