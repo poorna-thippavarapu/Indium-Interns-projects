@@ -1,4 +1,5 @@
 import React from 'react';
+import MLTrainingControls from './MLTrainingControls';
 
 const AugmentControls = ({ 
   augmentOp, 
@@ -41,6 +42,98 @@ const AugmentControls = ({
       
       {augmentOp && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Mode Selection */}
+          <div style={{ 
+            background: 'rgba(245, 101, 101, 0.05)', 
+            border: '1px solid rgba(245, 101, 101, 0.15)', 
+            borderRadius: '10px', 
+            padding: '1rem' 
+          }}>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '0.85rem', 
+              fontWeight: '600', 
+              color: 'var(--text-light-gray)',
+              marginBottom: '0.75rem',
+              textAlign: 'center'
+            }}>
+              Augmentation Mode
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: augmentOp.mode !== 'ml_training' ? '2px solid #f56565' : '2px solid rgba(245, 101, 101, 0.2)',
+                background: augmentOp.mode !== 'ml_training' ? 'rgba(245, 101, 101, 0.15)' : 'rgba(245, 101, 101, 0.05)',
+                flex: 1,
+                transition: 'all 0.2s ease',
+                fontWeight: '600',
+                justifyContent: 'center'
+              }}>
+                <input 
+                  type="radio" 
+                  name="augmentMode"
+                  checked={augmentOp.mode !== 'ml_training'} 
+                  onChange={() => onChange('augment', 'mode', 'deterministic')}
+                  style={{ accentColor: '#f56565' }}
+                />
+                🎯 Deterministic
+              </label>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: augmentOp.mode === 'ml_training' ? '2px solid rgb(16, 185, 129)' : '2px solid rgba(16, 185, 129, 0.2)',
+                background: augmentOp.mode === 'ml_training' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.05)',
+                flex: 1,
+                transition: 'all 0.2s ease',
+                fontWeight: '600',
+                justifyContent: 'center'
+              }}>
+                <input 
+                  type="radio" 
+                  name="augmentMode"
+                  checked={augmentOp.mode === 'ml_training'} 
+                  onChange={() => onChange('augment', 'mode', 'ml_training')}
+                  style={{ accentColor: 'rgb(16, 185, 129)' }}
+                />
+                🎲 ML Training
+              </label>
+            </div>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: 'var(--text-dark-gray)', 
+              marginTop: '0.5rem',
+              textAlign: 'center'
+            }}>
+              {augmentOp.mode === 'ml_training' 
+                ? 'Random variations for training data diversity' 
+                : 'Precise, consistent transforms for exact control'}
+            </div>
+          </div>
+
+          {/* ML Training Controls */}
+          <MLTrainingControls 
+            augmentOp={augmentOp}
+            onChange={onChange}
+            learningMode={learningMode}
+            explanations={explanations}
+            expandedExplanations={expandedExplanations}
+            setExpandedExplanations={setExpandedExplanations}
+          />
+
+          {/* Deterministic Controls - only show when not in ML training mode */}
+          {augmentOp.mode !== 'ml_training' && (
+            <>
           {/* Rotation */}
           <div style={{ 
             background: 'rgba(245, 101, 101, 0.05)', 
@@ -259,6 +352,8 @@ const AugmentControls = ({
               🔁 Vertical Flip
             </label>
           </div>
+            </>
+          )}
           
           {learningMode && (
             <div style={{ marginTop: '0.5rem' }}>
