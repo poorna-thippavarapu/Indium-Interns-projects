@@ -1,0 +1,20 @@
+html, body, [class^="css"] {
+    background-color: #000;
+    color: #f8f8f8 !important;
+    font-family: "SF Mono Regular", "SF Mono", Menlo, Monaco, monospace;
+}
+.block-container { padding-top: 0; }
+button[kind="primary"], button[kind="secondary"] {
+    background-color: #00ff66 !important;
+    color: #000 !important;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+}
+button:hover { filter: brightness(115%); }
+label span, .stRadio > label { color: #00ff66; }
+hr.terminal-divider {
+    border: 0;
+    border-top: 2px dotted #f8f8f8;
+    margin: 0;
+}
